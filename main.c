@@ -167,6 +167,11 @@ int main(void) {
 #error What is this MCU even?
 #endif
 
+    usb_start();
+    usb_bus_init();
+    usb_bus_wait_for_device();
+    usb_bus_reset_open_ep0();
+
     stdio_init_all();
 
     // this delay being long enough, seems to have
@@ -183,8 +188,6 @@ int main(void) {
     printf("==========================================================\n");
     printf("\n");
 #endif
-
-    
 
 #if WITH_AUTO_MODE
     do_auto();
