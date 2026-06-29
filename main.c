@@ -25,6 +25,7 @@
 
 __attribute__((noreturn))
 void fatal_failure(void) {
+    led_set_state(LED_STATE_ERROR);
 
 #if WITH_AUTO_REBOOT
     printf("\nfatal failure, rebooting in %d seconds\n", FAILURE_REBOOT_DELAY_SEC);
@@ -167,16 +168,16 @@ int main(void) {
 #error What is this MCU even?
 #endif
 
-    usb_start();
-    usb_bus_init();
-    usb_bus_wait_for_device();
-    usb_bus_reset_open_ep0();
+    led_init();
+    led_set_state(LED_STATE_BOOTING);
 
     stdio_init_all();
 
     // this delay being long enough, seems to have
     // a HUGE impact on the exploit reliability
-    sleep_ms(2000);
+    sleep_ms(10000);
+
+    led_set_state(LED_STATE_IDLE);
 
     printf("\n============ %s v%s ============\n", PICO_PROGRAM_NAME, PICO_PROGRAM_VERSION_STRING);
     printf("built for %s, PIO USB @ GP%d/%d (D+/D-)\n\n", BOARD_NAME, PIO_USB_DP_PIN_DEFAULT, PIO_USB_DP_PIN_DEFAULT + 1);
@@ -188,6 +189,8 @@ int main(void) {
     printf("==========================================================\n");
     printf("\n");
 #endif
+
+
 
 #if WITH_AUTO_MODE
     do_auto();
