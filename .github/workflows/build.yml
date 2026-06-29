@@ -1,4 +1,4 @@
-name: Build usbliter8 firmware for Pico 2W
+name: Build usbliter8 (unknown board)
 
 on:
   push:
@@ -17,8 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         board:
-          - name: "pico2_w"
-            uf2_name: "usbliter8_pico2_w.uf2"
+          - name: "unknown"
+            uf2_name: "usbliter8_unknown.uf2"
+          # Opcional: también compila para pico2_w para comparar
+          # - name: "pico2_w"
+          #   uf2_name: "usbliter8_pico2_w.uf2"
 
     steps:
       - name: Checkout repository
