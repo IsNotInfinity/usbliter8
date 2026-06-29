@@ -17,8 +17,8 @@ jobs:
       fail-fast: false
       matrix:
         board:
-          - name: "unknown"
-            uf2_name: "usbliter8_unknown.uf2"
+          - name: "pico2_w"
+            uf2_name: "usbliter8_pico2_w.uf2"
 
     steps:
       - name: Checkout repository
