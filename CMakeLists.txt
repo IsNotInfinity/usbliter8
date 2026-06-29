@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-# ====================================================================================
-
 include(pico_sdk_import.cmake)
 
 project(usbliter8 C CXX ASM)
@@ -9,17 +7,13 @@ project(usbliter8 C CXX ASM)
 set(CMAKE_BUILD_TYPE MinSizeRel)
 
 SET(BOARD_DEFINITION ${CMAKE_SOURCE_DIR}/boards/${PICO_BOARD}.cmake)
-
 if (NOT EXISTS ${BOARD_DEFINITION})
     SET(BOARD_DEFINITION ${CMAKE_SOURCE_DIR}/boards/unknown.cmake)
 endif()
-
 include(${BOARD_DEFINITION} OPTIONAL)
 
 if (NOT DEFINED USBLITER8_ENABLE_SHELL)
-    add_compile_definitions(
-        WITH_AUTO_MODE=1
-    )
+    add_compile_definitions(WITH_AUTO_MODE=1)
 endif()
 
 pico_sdk_init()
@@ -47,11 +41,16 @@ pico_enable_stdio_usb(usbliter8 1)
 
 add_subdirectory(pio_usb)
 
+# ======================================================
+# AÑADIR LAS LIBRERÍAS DE CYW43 PARA CONTROL DEL LED
+# ======================================================
 target_link_libraries(usbliter8
     pico_stdlib
     pico_status_led
     hardware_pwm
     pio_usb
+    pico_cyw43_arch_none   # <-- Necesario para controlar el LED
+    pico_cyw43_driver      # <-- Driver del chip Wi-Fi
 )
 
 pico_add_extra_outputs(usbliter8)

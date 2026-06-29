@@ -6,10 +6,11 @@
 
 #include "hardware/clocks.h"
 #include "hardware/watchdog.h"
-#include "led.h"
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
+#include "pico/cyw43_arch.h"    // <-- Necesario para controlar el LED en Pico 2W
 
+#include "led.h"
 #include "bus.h"
 #include "exploit.h"
 #include "usb.h"
@@ -159,7 +160,9 @@ void do_shell(void) {
 #endif
 
 int main(void) {
-    // PIO USB needs sys_clk to be a multiple of 12 MHz
+    // ============================================================
+    // 1. Configurar la frecuencia del sistema
+    // ============================================================
 #if PICO_RP2350
     set_sys_clock_khz(156000, true);
 #elif PICO_RP2040
@@ -168,17 +171,38 @@ int main(void) {
 #error What is this MCU even?
 #endif
 
+    // ============================================================
+    // 2. Inicializar stdio para logs (debe ir ANTES del LED)
+    // ============================================================
+    stdio_init_all();
+
+    // ============================================================
+    // 3. Inicializar el driver Wi-Fi (necesario para el LED)
+    // ============================================================
+    if (cyw43_arch_init()) {
+        printf("Error: cyw43_arch_init() falló\n");
+        return 1;
+    }
+
+    // ============================================================
+    // 4. Inicializar el LED y ponerlo en estado BOOTING
+    // ============================================================
     led_init();
     led_set_state(LED_STATE_BOOTING);
 
-    stdio_init_all();
-
-    // this delay being long enough, seems to have
-    // a HUGE impact on the exploit reliability
+    // ============================================================
+    // 5. Este delay es CRÍTICO para la fiabilidad del exploit
+    // ============================================================
     sleep_ms(2000);
 
+    // ============================================================
+    // 6. Cambiar LED a estado IDLE (esperando al iPad)
+    // ============================================================
     led_set_state(LED_STATE_IDLE);
 
+    // ============================================================
+    // 7. Mostrar información de inicio
+    // ============================================================
     printf("\n============ %s v%s ============\n", PICO_PROGRAM_NAME, PICO_PROGRAM_VERSION_STRING);
     printf("built for %s, PIO USB @ GP%d/%d (D+/D-)\n\n", BOARD_NAME, PIO_USB_DP_PIN_DEFAULT, PIO_USB_DP_PIN_DEFAULT + 1);
 
@@ -190,14 +214,23 @@ int main(void) {
     printf("\n");
 #endif
 
+    // ============================================================
+    // 8. Inicializar el bus USB y esperar al dispositivo
+    // ============================================================
     usb_start();
     usb_bus_init();
     usb_bus_wait_for_device();
     usb_bus_reset_open_ep0();
 
+    // ============================================================
+    // 9. Ejecutar modo automático (exploit) o shell de depuración
+    // ============================================================
 #if WITH_AUTO_MODE
     do_auto();
 #else
     do_shell();
 #endif
+
+    // Nunca debería llegar aquí
+    return 0;
 }
