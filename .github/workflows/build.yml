@@ -1,0 +1,77 @@
+name: Build usbliter8 firmware for Pico 2W
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:  # Permite ejecutarlo manualmente desde la UI de GitHub
+
+env:
+  PICO_SDK_VERSION: "2.2.0"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - name: "pico2_w"
+            uf2_name: "usbliter8_pico2_w.uf2"
+          # Opcional: añade otras placas si las necesitas
+          # - name: "pico2"
+          #   uf2_name: "usbliter8_pico2.uf2"
+          # - name: "waveshare_rp2350_usb_a"
+          #   uf2_name: "usbliter8_waveshare_rp2350_usb_a.uf2"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            cmake \
+            gcc-arm-none-eabi \
+            libnewlib-arm-none-eabi \
+            libstdc++-arm-none-eabi-newlib \
+            libusb-1.0-0-dev \
+            build-essential \
+            git
+
+      - name: Clone Pico SDK
+        run: |
+          git clone --branch ${{ env.PICO_SDK_VERSION }} --recurse-submodules \
+            https://github.com/raspberrypi/pico-sdk.git $HOME/pico-sdk
+
+      - name: Clone and build picotool
+        run: |
+          git clone https://github.com/raspberrypi/picotool.git $HOME/picotool
+          cd $HOME/picotool
+          mkdir build && cd build
+          cmake ..
+          make -j$(nproc)
+          sudo make install
+
+      - name: Configure build for ${{ matrix.board.name }}
+        run: |
+          mkdir -p build_${{ matrix.board.name }}
+          cd build_${{ matrix.board.name }}
+          cmake .. \
+            -DPICO_BOARD=${{ matrix.board.name }} \
+            -DPICO_SDK_PATH=$HOME/pico-sdk \
+            -DPICO_TOOLCHAIN_PATH=/usr
+
+      - name: Build firmware for ${{ matrix.board.name }}
+        run: |
+          cd build_${{ matrix.board.name }}
+          make -j$(nproc)
+
+      - name: Upload UF2 artifact for ${{ matrix.board.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.board.uf2_name }}
+          path: build_${{ matrix.board.name }}/usbliter8.uf2
+          if-no-files-found: error
