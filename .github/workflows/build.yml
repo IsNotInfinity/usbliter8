@@ -5,7 +5,7 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch:  # Permite ejecutarlo manualmente
+  workflow_dispatch:
 
 env:
   PICO_SDK_VERSION: "2.2.0"
@@ -19,9 +19,6 @@ jobs:
         board:
           - name: "pico2_w"
             uf2_name: "usbliter8_pico2_w.uf2"
-          # Puedes añadir más placas si las necesitas:
-          # - name: "pico2"
-          #   uf2_name: "usbliter8_pico2.uf2"
 
     steps:
       - name: Checkout repository
