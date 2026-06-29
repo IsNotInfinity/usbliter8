@@ -1,4 +1,4 @@
-name: Build usbliter8 (unknown board)
+name: Build usbliter8 (Pico 2W - Shell mode)
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
       matrix:
         board:
           - name: "pico2_w"
-            uf2_name: "usbliter8_pico2_w.uf2"
+            uf2_name: "usbliter8_pico2_w_shell.uf2"
 
     steps:
       - name: Checkout repository
@@ -40,14 +40,16 @@ jobs:
           git clone --branch ${{ env.PICO_SDK_VERSION }} --recurse-submodules \
             https://github.com/raspberrypi/pico-sdk.git $HOME/pico-sdk
 
-      - name: Configure build for ${{ matrix.board.name }}
+      - name: Configure build for ${{ matrix.board.name }} (shell mode)
         run: |
           mkdir -p build_${{ matrix.board.name }}
           cd build_${{ matrix.board.name }}
           cmake .. \
             -DPICO_BOARD=${{ matrix.board.name }} \
+            -DPICO_PLATFORM=rp2350-arm-s \
             -DPICO_BOARD_CMAKE_DIRS=${GITHUB_WORKSPACE}/boards \
-            -DPICO_SDK_PATH=$HOME/pico-sdk
+            -DPICO_SDK_PATH=$HOME/pico-sdk \
+            -DUSBLITER8_ENABLE_SHELL=1
 
       - name: Build firmware for ${{ matrix.board.name }}
         run: |
