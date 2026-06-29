@@ -184,10 +184,7 @@ int main(void) {
     printf("\n");
 #endif
 
-    usb_start();
-    usb_bus_init();
-    usb_bus_wait_for_device();
-    usb_bus_reset_open_ep0();
+    
 
 #if WITH_AUTO_MODE
     do_auto();
