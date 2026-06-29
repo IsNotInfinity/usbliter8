@@ -19,9 +19,6 @@ jobs:
         board:
           - name: "unknown"
             uf2_name: "usbliter8_unknown.uf2"
-          # Opcional: también compila para pico2_w para comparar
-          # - name: "pico2_w"
-          #   uf2_name: "usbliter8_pico2_w.uf2"
 
     steps:
       - name: Checkout repository
@@ -49,6 +46,7 @@ jobs:
           cd build_${{ matrix.board.name }}
           cmake .. \
             -DPICO_BOARD=${{ matrix.board.name }} \
+            -DPICO_BOARD_CMAKE_DIRS=${GITHUB_WORKSPACE}/boards \
             -DPICO_SDK_PATH=$HOME/pico-sdk
 
       - name: Build firmware for ${{ matrix.board.name }}
